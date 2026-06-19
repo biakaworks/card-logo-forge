@@ -128,7 +128,7 @@
   <div class="wrap">
     <div class="eyebrow">BiakaPlays Presents</div>
     <h1>Card Logo Forge</h1>
-    <p class="sub">Type a card name, pick a style, add the pricing and EDHREC Synergy Commander &amp; drop the transparent file straight into your edit.</p>
+    <p class="sub">Type a card name, pick a style, add the pricing and EDHREC Synergy Commander &amp; save image to photos then drop the transparent file straight into your edit.</p>
 
     <div class="controls">
       <div>
@@ -340,27 +340,32 @@
   function isMobile(){
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent));
   }
+  function dataURLtoBlob(d){
+    const parts=d.split(','), mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/png';
+    const bin=atob(parts[1]), len=bin.length, arr=new Uint8Array(len);
+    for(let i=0;i<len;i++) arr[i]=bin.charCodeAt(i);
+    return new Blob([arr],{type:mime});
+  }
+  function plainDownload(dataURL,fname){
+    const a=document.createElement('a'); a.download=fname; a.href=dataURL; a.click();
+    setStatus('PNG saved - transparent, 2048px wide.','ok');
+  }
   function downloadPNG(){
     render();
     const fname=filename('png');
-    elCanvas.toBlob(async (blob)=>{
-      if(blob && isMobile() && navigator.canShare){
-        try{
-          const file=new File([blob],fname,{type:'image/png'});
-          if(navigator.canShare({files:[file]})){
-            await navigator.share({files:[file],title:fname});
-            setStatus('Tap “Save Image” in the share sheet to add it to Photos.','ok');
-            return;
-          }
-        }catch(err){
-          if(err&&err.name==='AbortError'){ setStatus('Save cancelled.',''); return; }
+    const dataURL=elCanvas.toDataURL('image/png'); // synchronous: keeps the iOS user gesture alive
+    if(isMobile() && navigator.canShare){
+      try{
+        const file=new File([dataURLtoBlob(dataURL)],fname,{type:'image/png'});
+        if(navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:fname})
+            .then(()=>setStatus('Tap “Save Image” in the share sheet to add it to Photos.','ok'))
+            .catch(err=>{ if(!(err&&err.name==='AbortError')) plainDownload(dataURL,fname); else setStatus('Save cancelled.',''); });
+          return;
         }
-      }
-      const url=blob?URL.createObjectURL(blob):elCanvas.toDataURL('image/png');
-      const a=document.createElement('a'); a.download=fname; a.href=url; a.click();
-      if(blob) setTimeout(()=>URL.revokeObjectURL(url),1500);
-      setStatus('PNG saved - transparent, 2048px wide.','ok');
-    },'image/png');
+      }catch(e){}
+    }
+    plainDownload(dataURL,fname);
   }
 
   let fontB64={};
