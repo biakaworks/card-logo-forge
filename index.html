@@ -27,6 +27,15 @@
     color:var(--ink); font-size:17px; font-family:inherit; padding:13px 14px; outline:none;
     transition:border-color .15s,box-shadow .15s; }
   input[type="text"]:focus{ border-color:var(--druid); box-shadow:0 0 0 3px rgba(111,191,115,0.16); }
+  .combo{ position:relative; }
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:6px; min-height:14px; }
+  .suggest{ position:absolute; z-index:20; left:0; right:0; top:calc(100% + 6px);
+    background:#0f120e; border:1px solid var(--line); border-radius:10px; list-style:none;
+    max-height:280px; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,.5); padding:4px; }
+  .suggest[hidden]{ display:none; }
+  .suggest li{ padding:9px 11px; border-radius:7px; font-size:14.5px; cursor:pointer; color:var(--ink); line-height:1.25; }
+  .suggest li:hover, .suggest li.active{ background:#1d2419; }
+  .suggest li b{ color:var(--druid); font-weight:700; }
   .styles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
   .stylebtn{ cursor:pointer; text-align:left; background:var(--field); border:1px solid var(--line);
     border-radius:10px; padding:12px 13px; transition:border-color .15s,background .15s,transform .05s; color:var(--ink); }
@@ -74,7 +83,12 @@
     <div class="controls">
       <div>
         <label class="fieldlabel" for="cardname">Card name</label>
-        <input type="text" id="cardname" value="Krenko, Mob Boss" autocomplete="off" spellcheck="false" />
+        <div class="combo">
+          <input type="text" id="cardname" value="Krenko, Mob Boss" autocomplete="off" spellcheck="false"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggest" />
+          <ul class="suggest" id="suggest" role="listbox" hidden></ul>
+        </div>
+        <div class="hint" id="nameHint">Start typing — suggestions pull from Scryfall's full card list.</div>
       </div>
       <div>
         <label class="fieldlabel">Style</label>
@@ -152,8 +166,12 @@
   const elName=document.getElementById('cardname');
   const elCanvas=document.getElementById('preview');
   const elStatus=document.getElementById('status');
+  const elSuggest=document.getElementById('suggest');
+  const elHint=document.getElementById('nameHint');
   const styleBtns=document.querySelectorAll('.stylebtn');
   let current='thrash';
+  const FALLBACK_NAMES=["Krenko, Mob Boss","Krenko, Tin Street Kingpin","Goblin Chieftain","Goblin King","Goblin Bombardment","Impact Tremors","Purphoros, God of the Forge","Xenagos, God of Revels","Xenagos, the Reveler","Domri Rade","Gruul Spellbreaker","Burning-Tree Emissary","Persistent Petitioners","Thrumming Stone","Sol Ring","Arcane Signet","Command Tower","Cultivate","Kodama's Reach","Rampant Growth","Counterspell","Swords to Plowshares","Path to Exile","Lightning Bolt","Cyclonic Rift","Smothering Tithe","Rhystic Study","Mystic Remora","Esper Sentinel","Dockside Extortionist","Mana Crypt","Mana Vault","Chrome Mox","Lotus Petal","Sensei's Divining Top","Sylvan Library","Eternal Witness","Beast Within","Chaos Warp","Generous Gift","Teferi's Protection","Heroic Intervention","Craterhoof Behemoth","Avenger of Zendikar","Triumph of the Hordes","Overwhelming Stampede","Skullclamp","Phyrexian Arena","Necropotence","Bolas's Citadel","Dark Ritual","Demonic Tutor","Vampiric Tutor","Cabal Coffers","Nykthos, Shrine to Nyx","Gaea's Cradle","Ancient Tomb","Reliquary Tower","Doubling Season","Blasphemous Act","Wrath of God","Damnation","Llanowar Elves","Birds of Paradise","Atraxa, Praetors' Voice","Edgar Markov","Korvold, Fae-Cursed King","Meren of Clan Nel Toth","The Ur-Dragon","Kaalia of the Vast","Yuriko, the Tiger's Shadow","Muldrotha, the Gravetide","Najeela, the Blade-Blossom","Kenrith, the Returned King","Golos, Tireless Pilgrim","Prosper, Tome-Bound","Lathril, Blade of the Elves","Wilhelt, the Rotcleaver","Tovolar, Dire Overlord","Isshin, Two Heavens as One","Miirym, Sentinel Wyrm",'Henzie "Toolbox" Torre',"Magda, Brazen Outlaw","Jetmir, Nexus of Revels","Tergrid, God of Fright","Kaheera, the Orphanguard","Jegantha, the Wellspring","Sythis, Harvest's Hand","Galea, Kindler of Hope","Chulane, Teller of Tales","Gishath, Sun's Avatar","Ghalta, Primal Hunger","Kogla, the Titan Ape","Vorinclex, Voice of Hunger","Sheoldred, the Apocalypse","Elesh Norn, Mother of Machines","Jin-Gitaxias, Progress Tyrant","Urabrask, Heretic Praetor","Solphim, Mayhem Dominus","Toxrill, the Corrosive","Old Stickfingers","The Meathook Massacre","Bloodletter of Aclazotz","Sorin, Imperious Bloodlord","Vito, Thorn of the Dusk Rose","Anhelo, the Painter","Lord of the Nazgûl","Sauron, the Dark Lord","Frodo Baggins","Delighted Halfling","Orcish Bowmasters","The One Ring","Talisman of Conviction","Talisman of Creativity","Fellwar Stone","Mind Stone","Wayfarer's Bauble","Solemn Simulacrum","Burnished Hart","Farseek","Nature's Lore","Three Visits","Signal the Clans","Krark-Clan Ironworks","Goblin Engineer","Goblin Welder","Pashalik Mons","Hordeling Outburst","Krenko's Command","Dragon Fodder","Mardu Strike Leader","Legion Loyalist","Skirk Prospector","Battle Squadron","Coat of Arms","Door of Destinies","Vanquisher's Banner","Shared Animosity","Mob Justice","Massive Raid","Goblin War Strike","Reckless Fireweaver","Terror of the Peaks","Warstorm Surge","Fervor","Hammer of Purphoros"];
+  let CARD_NAMES=FALLBACK_NAMES.slice(); let sugItems=[]; let sugActive=-1; let sugTimer=null;
 
   const OUT_W=2048, PAD=120, MAX_TEXT_W=OUT_W-PAD*2, BASE_SIZE=360, MIN_SINGLE=150;
   function sanitize(s){ return (s||'Card Name').trim()||'Card Name'; }
@@ -258,7 +276,60 @@
   }
   function setStatus(msg,cls){ elStatus.textContent=msg; elStatus.className='status'+(cls?' '+cls:''); }
 
-  elName.addEventListener('input',()=>{ render(); setStatus(''); });
+  // ---- Scryfall card-name autocomplete (load once, filter locally) ----
+  function loadCardNames(){
+    elHint.textContent='Suggestions ready ('+CARD_NAMES.length+' popular cards) — loading full Scryfall list…';
+    fetch('https://api.scryfall.com/catalog/card-names',{headers:{'Accept':'application/json;q=0.9,*/*;q=0.8'}})
+      .then(r=>{ if(!r.ok) throw 0; return r.json(); })
+      .then(d=>{ if(d&&d.data&&d.data.length){ CARD_NAMES=d.data; elHint.textContent='Start typing — '+CARD_NAMES.length.toLocaleString()+' card names loaded from Scryfall.'; } })
+      .catch(()=>{ elHint.textContent='Using a built-in starter list ('+CARD_NAMES.length+' cards). The full Scryfall list loads on the deployed site.'; });
+  }
+  function scheduleSuggest(){ clearTimeout(sugTimer); sugTimer=setTimeout(runSuggest,80); }
+  function runSuggest(){
+    const q=elName.value.trim().toLowerCase();
+    if(q.length<2 || !CARD_NAMES.length){ closeSuggest(); return; }
+    const pre=[], inc=[];
+    for(let i=0;i<CARD_NAMES.length;i++){
+      const n=CARD_NAMES[i], ln=n.toLowerCase();
+      if(ln.startsWith(q)){ if(pre.length<10) pre.push(n); }
+      else if(inc.length<10 && ln.indexOf(q)>-1){ inc.push(n); }
+      if(pre.length>=10) break;
+    }
+    sugItems=pre.concat(inc).slice(0,10);
+    if(!sugItems.length){ closeSuggest(); return; }
+    renderSuggest(q);
+  }
+  function renderSuggest(q){
+    sugActive=-1; elSuggest.innerHTML='';
+    sugItems.forEach(name=>{
+      const li=document.createElement('li'); li.setAttribute('role','option');
+      const ln=name.toLowerCase(), pos=ln.indexOf(q);
+      if(pos>-1){
+        li.appendChild(document.createTextNode(name.slice(0,pos)));
+        const b=document.createElement('b'); b.textContent=name.slice(pos,pos+q.length); li.appendChild(b);
+        li.appendChild(document.createTextNode(name.slice(pos+q.length)));
+      } else { li.textContent=name; }
+      li.addEventListener('mousedown',e=>{ e.preventDefault(); choose(name); });
+      elSuggest.appendChild(li);
+    });
+    elSuggest.hidden=false; elName.setAttribute('aria-expanded','true');
+  }
+  function closeSuggest(){ elSuggest.hidden=true; elName.setAttribute('aria-expanded','false'); sugActive=-1; }
+  function choose(name){ elName.value=name; closeSuggest(); render(); setStatus(''); }
+  function paintActive(lis){ lis.forEach((li,i)=>li.classList.toggle('active',i===sugActive)); if(sugActive>-1&&lis[sugActive]) lis[sugActive].scrollIntoView({block:'nearest'}); }
+  function onNameKey(e){
+    if(elSuggest.hidden) return;
+    const lis=elSuggest.querySelectorAll('li');
+    if(e.key==='ArrowDown'){ e.preventDefault(); sugActive=Math.min(sugActive+1,lis.length-1); paintActive(lis); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sugActive=Math.max(sugActive-1,0); paintActive(lis); }
+    else if(e.key==='Enter'){ if(sugActive>-1){ e.preventDefault(); choose(sugItems[sugActive]); } }
+    else if(e.key==='Escape'){ closeSuggest(); }
+  }
+
+  elName.addEventListener('input',()=>{ render(); setStatus(''); scheduleSuggest(); });
+  elName.addEventListener('keydown',onNameKey);
+  elName.addEventListener('focus',()=>{ if(elName.value.trim().length>=2) scheduleSuggest(); });
+  elName.addEventListener('blur',()=>{ setTimeout(closeSuggest,120); });
   styleBtns.forEach(b=>{
     const pick=()=>{ current=b.dataset.style; styleBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); setStatus(''); };
     b.addEventListener('click',pick);
@@ -269,6 +340,7 @@
 
   function boot(){
     render();
+    loadCardNames();
     if(document.fonts&&document.fonts.ready){
       Promise.all([
         document.fonts.load('360px "Metal Mania"'),
