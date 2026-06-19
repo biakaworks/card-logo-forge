@@ -178,7 +178,7 @@
     <div class="status" id="status"></div>
 
     <p class="note">
-      <b>PNG</b> is for video overlays - 2048px, transparent, drops into Edits. <b>SVG</b> is the scalable vector for merch/print.
+      <b>PNG</b> is for video overlays - 2048px, transparent, drops into Edits. On phones it opens the share sheet, so you can tap <b>Save Image</b> to send it straight to Photos. <b>SVG</b> is the scalable vector for merch/print.
       These use real fonts, so spelling is always exactly what you type. The look is styled type, not hand-drawn illustration -
       for vines, wings, and skulls woven into the letters, that's the AI-image route.
     </p>
@@ -187,6 +187,10 @@
 
 <script>
 (function(){
+  // ====== CONFIG: paste your Cloudflare Worker URL here to enable EDHREC synergy auto-fill ======
+  // Leave as "" to disable (the box still works if you type a commander manually).
+  const EDHREC_PROXY="";  // e.g. "https://edhrec-proxy.yourname.workers.dev"
+
   const STYLES = {
     thrash:{ font:'Metal Mania', weight:400,
       stops:[[0,'#ffffff'],[0.4,'#9aa0a6'],[0.52,'#ffffff'],[0.62,'#6c7178'],[1,'#3f4349']],
@@ -288,11 +292,30 @@
     elCanvas._meta={lines,fontSize,lineH,ascent,totalTextH,H,cfg,text,captions,GAP,CLG};
   }
 
+  function isMobile(){
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints>1 && /Macintosh/.test(navigator.userAgent));
+  }
   function downloadPNG(){
     render();
-    const a=document.createElement('a');
-    a.download=filename('png'); a.href=elCanvas.toDataURL('image/png'); a.click();
-    setStatus('PNG saved - transparent, 2048px wide.','ok');
+    const fname=filename('png');
+    elCanvas.toBlob(async (blob)=>{
+      if(blob && isMobile() && navigator.canShare){
+        try{
+          const file=new File([blob],fname,{type:'image/png'});
+          if(navigator.canShare({files:[file]})){
+            await navigator.share({files:[file],title:fname});
+            setStatus('Tap “Save Image” in the share sheet to add it to Photos.','ok');
+            return;
+          }
+        }catch(err){
+          if(err&&err.name==='AbortError'){ setStatus('Save cancelled.',''); return; }
+        }
+      }
+      const url=blob?URL.createObjectURL(blob):elCanvas.toDataURL('image/png');
+      const a=document.createElement('a'); a.download=fname; a.href=url; a.click();
+      if(blob) setTimeout(()=>URL.revokeObjectURL(url),1500);
+      setStatus('PNG saved - transparent, 2048px wide.','ok');
+    },'image/png');
   }
 
   let fontB64={};
@@ -425,9 +448,16 @@
       if(r.ok){ const c=await r.json(); const usd=c.prices&&c.prices.usd; if(usd){ elPriceInput.value='$'+usd; okPrice=true; } }
     }catch(e){}
     try{
-      const slug=name.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim().replace(/ +/g,'-');
-      const r2=await fetch('https://json.edhrec.com/pages/cards/'+slug+'.json');
-      if(r2.ok){ const d=await r2.json(); const top=extractTopCommander(d); if(top){ elSynInput.value=top; okSyn=true; } }
+      let synName='';
+      if(EDHREC_PROXY){
+        const rp=await fetch(EDHREC_PROXY.replace(/\/$/,'')+'?card='+encodeURIComponent(name));
+        if(rp.ok){ const dp=await rp.json(); synName=dp.commander||''; }
+      } else {
+        const slug=name.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim().replace(/ +/g,'-');
+        const r2=await fetch('https://json.edhrec.com/pages/cards/'+slug+'.json');
+        if(r2.ok){ const d=await r2.json(); synName=extractTopCommander(d); }
+      }
+      if(synName){ elSynInput.value=synName; okSyn=true; }
     }catch(e){}
     render();
     elExtrasHint.textContent=(okPrice?'Price updated. ':'Price unavailable here. ')+(okSyn?'Synergy filled.':'EDHREC not reachable - type a commander manually.');
