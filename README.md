@@ -12,7 +12,7 @@ merch/print). Runs entirely in the browser — no build step, no dependencies.
 - **Druid** — carved green & bronze
 
 ## Use it
-Live: https://USERNAME.github.io/card-logo-forge/
+Live: https://biakaworks.github.io/card-logo-forge/
 
 Or open `index.html` locally in any browser.
 
