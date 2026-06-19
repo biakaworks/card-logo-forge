@@ -1,0 +1,283 @@
+<!--
+  Bless Thy Pulls - Metal Card Logo Generator (v2, expanded styles)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Metal+Mania&family=MedievalSharp&family=Nosifer&family=UnifrakturCook:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root{
+    --bg:#0d0f0c; --panel-solid:#1a1d18; --line:#2c302a; --ink:#e9ede4;
+    --muted:#8b9384; --chrome:#cfd4cb; --druid:#6fbf73; --bronze:#c79a3a; --field:#11130f;
+  }
+  #app{ font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--ink);
+    min-height:100%; padding:28px 20px 40px;
+    background-image:radial-gradient(ellipse 80% 50% at 50% -10%, rgba(111,191,115,0.07), transparent 60%); }
+  .wrap{ max-width:880px; margin:0 auto; }
+  .eyebrow{ font-size:11px; letter-spacing:0.28em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  h1{ font-family:'Metal Mania',cursive; font-size:clamp(30px,6vw,46px); font-weight:400; line-height:1;
+    color:var(--ink); text-shadow:0 1px 0 #000,0 0 22px rgba(111,191,115,0.18); margin-bottom:4px; }
+  .sub{ color:var(--muted); font-size:14px; margin-bottom:26px; }
+  .controls{ display:grid; gap:16px; background:var(--panel-solid); border:1px solid var(--line);
+    border-radius:14px; padding:20px; margin-bottom:20px; }
+  label.fieldlabel{ display:block; font-size:12px; font-weight:600; letter-spacing:0.04em; color:var(--muted);
+    text-transform:uppercase; margin-bottom:8px; }
+  input[type="text"]{ width:100%; background:var(--field); border:1px solid var(--line); border-radius:10px;
+    color:var(--ink); font-size:17px; font-family:inherit; padding:13px 14px; outline:none;
+    transition:border-color .15s,box-shadow .15s; }
+  input[type="text"]:focus{ border-color:var(--druid); box-shadow:0 0 0 3px rgba(111,191,115,0.16); }
+  .styles{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+  .stylebtn{ cursor:pointer; text-align:left; background:var(--field); border:1px solid var(--line);
+    border-radius:10px; padding:12px 13px; transition:border-color .15s,background .15s,transform .05s; color:var(--ink); }
+  .stylebtn:hover{ border-color:#475040; }
+  .stylebtn:active{ transform:translateY(1px); }
+  .stylebtn.active{ border-color:var(--chrome); background:#1d211b; }
+  .stylebtn.active[data-style="druid"]{ border-color:var(--druid); background:#141d12; }
+  .stylebtn .name{ font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px; }
+  .stylebtn .desc{ font-size:11.5px; color:var(--muted); margin-top:3px; line-height:1.35; }
+  .swatch{ width:14px; height:14px; border-radius:3px; display:inline-block; flex:none; }
+  .sw-chrome{ background:linear-gradient(135deg,#fff,#9aa0a6 45%,#fff 55%,#5b6066); }
+  .sw-white{ background:#f2f2f2; border:1px solid #555; }
+  .sw-gothic{ background:linear-gradient(135deg,#e6e9ee,#7c818a 60%,#cfd3d9); }
+  .sw-death{ background:linear-gradient(135deg,#fff,#b6232a 70%,#4a0d10); }
+  .sw-druid{ background:linear-gradient(135deg,#8fe39a,#2f6b2f 55%,#c79a3a); }
+  .stage-label{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .stage-label .lbl{ font-size:12px; font-weight:600; letter-spacing:.04em; color:var(--muted); text-transform:uppercase; }
+  .stage-label .muted{ font-size:12px; color:var(--muted); }
+  .stage{ border:1px solid var(--line); border-radius:14px; overflow:hidden; min-height:200px;
+    display:flex; align-items:center; justify-content:center; background-color:#0b0c0a;
+    background-image:linear-gradient(45deg,#151713 25%,transparent 25%),linear-gradient(-45deg,#151713 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#151713 75%),linear-gradient(-45deg,transparent 75%,#151713 75%);
+    background-size:22px 22px; background-position:0 0,0 11px,11px -11px,-11px 0; padding:24px; }
+  #preview{ max-width:100%; height:auto; display:block; }
+  .actions{ display:flex; gap:10px; margin-top:18px; flex-wrap:wrap; }
+  .btn{ flex:1; min-width:160px; cursor:pointer; font-family:inherit; font-size:14px; font-weight:600;
+    padding:13px 16px; border-radius:10px; border:1px solid var(--line); background:var(--field); color:var(--ink);
+    transition:border-color .15s,background .15s,transform .05s; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn:hover{ border-color:#475040; }
+  .btn:active{ transform:translateY(1px); }
+  .btn.primary{ background:var(--druid); color:#0b1408; border-color:var(--druid); }
+  .btn.primary:hover{ background:#7fcf83; }
+  .note{ margin-top:16px; font-size:12.5px; color:var(--muted); line-height:1.5; border-top:1px solid var(--line); padding-top:14px; }
+  .note b{ color:#b9c0af; font-weight:600; }
+  .status{ font-size:12px; color:var(--muted); min-height:16px; margin-top:6px; }
+  .status.ok{ color:var(--druid); }
+  .status.warn{ color:var(--bronze); }
+</style>
+
+<div id="app">
+  <div class="wrap">
+    <div class="eyebrow">Bless Thy Pulls</div>
+    <h1>Card Logo Forge</h1>
+    <p class="sub">Type a card name, pick a style, drop the transparent file straight into your edit.</p>
+
+    <div class="controls">
+      <div>
+        <label class="fieldlabel" for="cardname">Card name</label>
+        <input type="text" id="cardname" value="Krenko, Mob Boss" autocomplete="off" spellcheck="false" />
+      </div>
+      <div>
+        <label class="fieldlabel">Style</label>
+        <div class="styles" id="styles">
+          <div class="stylebtn active" data-style="thrash" tabindex="0" role="button">
+            <div class="name"><span class="swatch sw-chrome"></span>Thrash</div>
+            <div class="desc">Chrome lettering. Aggressive cards.</div>
+          </div>
+          <div class="stylebtn" data-style="brand" tabindex="0" role="button">
+            <div class="name"><span class="swatch sw-white"></span>Brand White</div>
+            <div class="desc">White + outline, your BTP look.</div>
+          </div>
+          <div class="stylebtn" data-style="gothic" tabindex="0" role="button">
+            <div class="name"><span class="swatch sw-gothic"></span>Gothic</div>
+            <div class="desc">Heavy blackletter. Dimir / vampires.</div>
+          </div>
+          <div class="stylebtn" data-style="death" tabindex="0" role="button">
+            <div class="name"><span class="swatch sw-death"></span>Death</div>
+            <div class="desc">Drippy horror. Macabre cards.</div>
+          </div>
+          <div class="stylebtn" data-style="druid" tabindex="0" role="button">
+            <div class="name"><span class="swatch sw-druid"></span>Druid</div>
+            <div class="desc">Carved green &amp; bronze. Nature.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-label">
+      <span class="lbl">Preview</span>
+      <span class="muted">transparent &middot; checkerboard shows through</span>
+    </div>
+    <div class="stage"><canvas id="preview"></canvas></div>
+
+    <div class="actions">
+      <button class="btn primary" id="dlpng">Download PNG (2K, transparent)</button>
+      <button class="btn" id="dlsvg">Download SVG (vector)</button>
+    </div>
+    <div class="status" id="status"></div>
+
+    <p class="note">
+      <b>PNG</b> is for video overlays - 2048px, transparent, drops into Edits. <b>SVG</b> is the scalable vector for merch/print.
+      These use real fonts, so spelling is always exactly what you type. The look is styled type, not hand-drawn illustration -
+      for vines, wings, and skulls woven into the letters, that's the AI-image route.
+    </p>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STYLES = {
+    thrash:{ font:'Metal Mania', weight:400,
+      stops:[[0,'#ffffff'],[0.4,'#9aa0a6'],[0.52,'#ffffff'],[0.62,'#6c7178'],[1,'#3f4349']],
+      stroke:'#0a0a0a', strokeRatio:0.035, shadow:'rgba(0,0,0,0.55)' },
+    brand:{ font:'Metal Mania', weight:400,
+      stops:[[0,'#ffffff'],[1,'#e4e4e4']],
+      stroke:'#000000', strokeRatio:0.06, shadow:'rgba(0,0,0,0.6)' },
+    gothic:{ font:'UnifrakturCook', weight:700,
+      stops:[[0,'#eef1f5'],[0.45,'#8a8f98'],[0.6,'#e2e5ea'],[1,'#5b6068']],
+      stroke:'#0a0a0a', strokeRatio:0.03, shadow:'rgba(0,0,0,0.5)' },
+    death:{ font:'Nosifer', weight:400,
+      stops:[[0,'#ffd9d2'],[0.22,'#e8362a'],[0.55,'#a51212'],[1,'#3d0606']],
+      stroke:'#1a0303', strokeRatio:0.028, shadow:'rgba(120,0,6,0.6)' },
+    druid:{ font:'MedievalSharp', weight:400,
+      stops:[[0,'#a7e8ad'],[0.35,'#4fa256'],[0.6,'#2c6730'],[1,'#c79a3a']],
+      stroke:'#10210f', strokeRatio:0.04, shadow:'rgba(0,0,0,0.5)' }
+  };
+  const FONT_FILES = {
+    'Metal Mania':'https://cdn.jsdelivr.net/npm/@fontsource/metal-mania/files/metal-mania-latin-400-normal.woff2',
+    'MedievalSharp':'https://cdn.jsdelivr.net/npm/@fontsource/medievalsharp/files/medievalsharp-latin-400-normal.woff2',
+    'UnifrakturCook':'https://cdn.jsdelivr.net/npm/@fontsource/unifraktur-cook/files/unifraktur-cook-latin-700-normal.woff2',
+    'Nosifer':'https://cdn.jsdelivr.net/npm/@fontsource/nosifer/files/nosifer-latin-400-normal.woff2'
+  };
+
+  const elName=document.getElementById('cardname');
+  const elCanvas=document.getElementById('preview');
+  const elStatus=document.getElementById('status');
+  const styleBtns=document.querySelectorAll('.stylebtn');
+  let current='thrash';
+
+  const OUT_W=2048, PAD=120, MAX_TEXT_W=OUT_W-PAD*2, BASE_SIZE=360, MIN_SINGLE=150;
+  function sanitize(s){ return (s||'Card Name').trim()||'Card Name'; }
+  function fontStr(cfg,size){ return (cfg.weight?cfg.weight+' ':'')+size+'px "'+cfg.font+'"'; }
+
+  function layout(ctx,text,cfg){
+    let size=BASE_SIZE;
+    ctx.font=fontStr(cfg,size);
+    let w=ctx.measureText(text).width;
+    if(w>MAX_TEXT_W){ size=Math.floor(size*MAX_TEXT_W/w); }
+    if(size<MIN_SINGLE && text.includes(' ')){
+      const words=text.split(' '); let best=null;
+      for(let i=1;i<words.length;i++){
+        const a=words.slice(0,i).join(' '), b=words.slice(i).join(' ');
+        let s=BASE_SIZE; ctx.font=fontStr(cfg,s);
+        const wmax=Math.max(ctx.measureText(a).width,ctx.measureText(b).width);
+        if(wmax>MAX_TEXT_W) s=Math.floor(s*MAX_TEXT_W/wmax);
+        if(!best||s>best.size) best={size:s,lines:[a,b]};
+      }
+      if(best) return {lines:best.lines,fontSize:best.size};
+    }
+    return {lines:[text],fontSize:size};
+  }
+
+  function render(){
+    const cfg=STYLES[current];
+    const text=sanitize(elName.value);
+    const ctx=elCanvas.getContext('2d');
+    const probe=document.createElement('canvas').getContext('2d');
+    probe.textBaseline='alphabetic';
+    const {lines,fontSize}=layout(probe,text,cfg);
+    const lineH=fontSize*1.18, ascent=fontSize*0.78, descent=fontSize*0.30;
+    const totalTextH=(lines.length-1)*lineH+ascent+descent;
+    const H=Math.ceil(totalTextH+PAD*2);
+    elCanvas.width=OUT_W; elCanvas.height=H;
+    ctx.clearRect(0,0,OUT_W,H);
+    ctx.font=fontStr(cfg,fontSize);
+    ctx.textAlign='center'; ctx.textBaseline='alphabetic'; ctx.lineJoin='round';
+    const grad=ctx.createLinearGradient(0,PAD,0,PAD+totalTextH);
+    cfg.stops.forEach(([o,c])=>grad.addColorStop(o,c));
+    lines.forEach((ln,i)=>{
+      const y=PAD+ascent+i*lineH, x=OUT_W/2;
+      ctx.save();
+      ctx.shadowColor=cfg.shadow; ctx.shadowBlur=fontSize*0.06; ctx.shadowOffsetY=fontSize*0.03;
+      ctx.lineWidth=fontSize*cfg.strokeRatio; ctx.strokeStyle=cfg.stroke; ctx.strokeText(ln,x,y);
+      ctx.restore();
+      ctx.fillStyle=grad; ctx.fillText(ln,x,y);
+    });
+    elCanvas._meta={lines,fontSize,lineH,ascent,totalTextH,H,cfg,text};
+  }
+
+  function downloadPNG(){
+    render();
+    const a=document.createElement('a');
+    a.download=filename('png'); a.href=elCanvas.toDataURL('image/png'); a.click();
+    setStatus('PNG saved - transparent, 2048px wide.','ok');
+  }
+
+  let fontB64={};
+  async function getFontB64(family){
+    if(fontB64[family]!==undefined) return fontB64[family];
+    try{
+      const res=await fetch(FONT_FILES[family]); if(!res.ok) throw 0;
+      const bytes=new Uint8Array(await res.arrayBuffer());
+      let bin='', chunk=0x8000;
+      for(let i=0;i<bytes.length;i+=chunk) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+      fontB64[family]=btoa(bin);
+    }catch(e){ fontB64[family]=null; }
+    return fontB64[family];
+  }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  async function downloadSVG(){
+    render();
+    const m=elCanvas._meta, cfg=m.cfg;
+    setStatus('Building vector...','');
+    const b64=await getFontB64(cfg.font);
+    const W=OUT_W,H=m.H, gid='g_'+current;
+    const stops=cfg.stops.map(([o,c])=>'<stop offset="'+(o*100).toFixed(1)+'%" stop-color="'+c+'"/>').join('');
+    let fontCss, portable=true;
+    if(b64){ fontCss='@font-face{font-family:"'+cfg.font+'";font-weight:'+cfg.weight+';src:url(data:font/woff2;base64,'+b64+') format("woff2");}'; }
+    else{ portable=false; fontCss="@import url('https://fonts.googleapis.com/css2?family="+cfg.font.replace(/ /g,'+')+(cfg.weight!==400?':wght@'+cfg.weight:'')+"&display=swap');"; }
+    const strokeW=(m.fontSize*cfg.strokeRatio).toFixed(1);
+    let tspans='';
+    m.lines.forEach((ln,i)=>{ const y=(PAD+m.ascent+i*m.lineH).toFixed(1); tspans+='<tspan x="'+(W/2)+'" y="'+y+'">'+esc(ln)+'</tspan>'; });
+    const tc='font-family:"'+cfg.font+'";font-weight:'+cfg.weight+';font-size:'+m.fontSize+'px;text-anchor:middle;';
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'
+      +'<defs><style>'+fontCss+'</style>'
+      +'<linearGradient id="'+gid+'" x1="0" y1="'+PAD+'" x2="0" y2="'+(PAD+m.totalTextH)+'" gradientUnits="userSpaceOnUse">'+stops+'</linearGradient></defs>'
+      +'<text style="'+tc+'" fill="none" stroke="'+cfg.stroke+'" stroke-width="'+strokeW+'" stroke-linejoin="round">'+tspans+'</text>'
+      +'<text style="'+tc+'" fill="url(#'+gid+')">'+tspans+'</text></svg>';
+    const blob=new Blob([svg],{type:'image/svg+xml'});
+    const a=document.createElement('a'); a.download=filename('svg'); a.href=URL.createObjectURL(blob); a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    if(portable) setStatus('SVG saved - font embedded, sharp anywhere.','ok');
+    else setStatus('SVG saved, but the font could not embed in this sandbox. It references Google Fonts, so it renders online - or just use the PNG for editing.','warn');
+  }
+
+  function filename(ext){
+    const base=sanitize(elName.value).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'card';
+    return base+'-'+current+'.'+ext;
+  }
+  function setStatus(msg,cls){ elStatus.textContent=msg; elStatus.className='status'+(cls?' '+cls:''); }
+
+  elName.addEventListener('input',()=>{ render(); setStatus(''); });
+  styleBtns.forEach(b=>{
+    const pick=()=>{ current=b.dataset.style; styleBtns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(); setStatus(''); };
+    b.addEventListener('click',pick);
+    b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(); } });
+  });
+  document.getElementById('dlpng').addEventListener('click',downloadPNG);
+  document.getElementById('dlsvg').addEventListener('click',downloadSVG);
+
+  function boot(){
+    render();
+    if(document.fonts&&document.fonts.ready){
+      Promise.all([
+        document.fonts.load('360px "Metal Mania"'),
+        document.fonts.load('360px "MedievalSharp"'),
+        document.fonts.load('360px "Nosifer"'),
+        document.fonts.load('700 360px "UnifrakturCook"')
+      ]).then(()=>document.fonts.ready).then(render).catch(render);
+    }
+  }
+  boot();
+})();
+</script>
