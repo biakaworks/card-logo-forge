@@ -405,10 +405,13 @@
   }
 
   // ---- caption lines (price + synergy) ----
+  function cleanSyn(s){
+    return s.replace(/[+\-]?\d[\d.,]*\s*%?/g,'').replace(/\bsynergy\b/ig,'').replace(/[()\[\]]/g,'').replace(/\s{2,}/g,' ').replace(/^[\s:;,\-]+|[\s:;,\-]+$/g,'').trim();
+  }
   function getCaptions(){
     const out=[];
     if(elShowPrice&&elShowPrice.checked&&elPriceInput.value.trim()) out.push({text:elPriceInput.value.trim(),size:150});
-    if(elShowSyn&&elShowSyn.checked&&elSynInput.value.trim()) out.push({text:elSynInput.value.trim(),size:108});
+    if(elShowSyn&&elShowSyn.checked&&elSynInput.value.trim()){ const s=cleanSyn(elSynInput.value); if(s) out.push({text:s,size:108}); }
     return out;
   }
 
